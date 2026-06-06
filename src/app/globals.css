@@ -1,0 +1,361 @@
+@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Inter:wght@300..700&family=Tajawal:wght@300;400;500;700&display=swap") layer(fonts);
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --font-sans: "Cairo", "Tajawal", system-ui, -apple-system, sans-serif;
+  --font-arabic: "Cairo", "Tajawal", system-ui, -apple-system, sans-serif;
+  --font-french: "Inter", system-ui, -apple-system, sans-serif;
+  --font-heading: "Cairo", "Tajawal", system-ui, -apple-system, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  --animate-fade-in: fade-in 0.5s ease-out;
+  --animate-slide-up: slide-up 0.4s ease-out;
+  --animate-scale-in: scale-in 0.3s ease-out;
+  --animate-slide-in-right: slide-in-right 0.3s ease-out;
+  --animate-slide-in-left: slide-in-left 0.3s ease-out;
+}
+
+:root {
+  --background: #faf6f1;
+  --foreground: #1c1814;
+  --card: #ffffff;
+  --card-foreground: #1c1814;
+  --popover: #ffffff;
+  --popover-foreground: #1c1814;
+  --primary: #c9954a;
+  --primary-foreground: #ffffff;
+  --secondary: #f5efe7;
+  --secondary-foreground: #1c1814;
+  --muted: #f0eae0;
+  --muted-foreground: #7a7268;
+  --accent: #d4a854;
+  --accent-foreground: #1c1814;
+  --destructive: #c24141;
+  --border: #e5ddd0;
+  --input: #e5ddd0;
+  --ring: #c9954a;
+  --radius: 0.625rem;
+  --sidebar: #faf6f1;
+  --sidebar-foreground: #1c1814;
+  --sidebar-primary: #c9954a;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #f5efe7;
+  --sidebar-accent-foreground: #1c1814;
+  --sidebar-border: #e5ddd0;
+  --sidebar-ring: #c9954a;
+  --chart-1: #c9954a;
+  --chart-2: #d4a854;
+  --chart-3: #b8860b;
+  --chart-4: #8b6914;
+  --chart-5: #6b5010;
+}
+
+.dark {
+  --background: #1a1612;
+  --foreground: #f5efe7;
+  --card: #242018;
+  --card-foreground: #f5efe7;
+  --popover: #242018;
+  --popover-foreground: #f5efe7;
+  --primary: #d4a854;
+  --primary-foreground: #1c1814;
+  --secondary: #2c2720;
+  --secondary-foreground: #f5efe7;
+  --muted: #2c2720;
+  --muted-foreground: #9c9288;
+  --accent: #c9954a;
+  --accent-foreground: #f5efe7;
+  --destructive: #ef4444;
+  --border: #353025;
+  --input: #353025;
+  --ring: #d4a854;
+  --sidebar: #1a1612;
+  --sidebar-foreground: #f5efe7;
+  --sidebar-primary: #d4a854;
+  --sidebar-primary-foreground: #1c1814;
+  --sidebar-accent: #2c2720;
+  --sidebar-accent-foreground: #f5efe7;
+  --sidebar-border: #353025;
+  --sidebar-ring: #d4a854;
+  --chart-1: #d4a854;
+  --chart-2: #c9954a;
+  --chart-3: #e5c07b;
+  --chart-4: #b8860b;
+  --chart-5: #8b6914;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply scroll-smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  [dir="rtl"] body {
+    @apply font-arabic;
+  }
+
+  [dir="ltr"] body {
+    @apply font-french;
+  }
+}
+
+@layer utilities {
+  .arabic-text {
+    font-family: "Cairo", "Tajawal", system-ui, -apple-system, sans-serif;
+    letter-spacing: normal;
+    line-height: 1.6;
+  }
+
+  .french-text {
+    font-family: "Inter", system-ui, -apple-system, sans-serif;
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+  }
+
+  .rtl-flip {
+    [dir="rtl"] & {
+      transform: scaleX(-1);
+    }
+  }
+
+  .rtl-mirror {
+    [dir="rtl"] & {
+      transform: scaleX(-1);
+    }
+  }
+
+  .heading-1 {
+    @apply text-4xl font-bold leading-tight md:text-5xl lg:text-6xl;
+  }
+
+  .heading-2 {
+    @apply text-3xl font-bold leading-tight md:text-4xl;
+  }
+
+  .heading-3 {
+    @apply text-2xl font-semibold leading-snug md:text-3xl;
+  }
+
+  .heading-4 {
+    @apply text-xl font-semibold leading-snug md:text-2xl;
+  }
+
+  .body-large {
+    @apply text-lg leading-relaxed;
+  }
+
+  .body-base {
+    @apply text-base leading-relaxed;
+  }
+
+  .body-small {
+    @apply text-sm leading-relaxed;
+  }
+}
+
+@layer components {
+  .container-luxury {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+
+  .gold-gradient {
+    background: linear-gradient(
+      135deg,
+      #c9954a 0%,
+      #d4a854 30%,
+      #e5c07b 50%,
+      #c9954a 70%,
+      #b8860b 100%
+    );
+    background-size: 200% 200%;
+    animation: gold-shimmer 4s ease-in-out infinite;
+  }
+
+  .gold-gradient-text {
+    background: linear-gradient(
+      135deg,
+      #c9954a 0%,
+      #e5c07b 50%,
+      #b8860b 100%
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-md border border-border/50 shadow-sm;
+  }
+
+  .hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    @apply shadow-lg;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    background-color: var(--muted-foreground);
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-in-left {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes gold-shimmer {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
