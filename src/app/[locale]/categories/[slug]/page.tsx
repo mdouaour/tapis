@@ -1,10 +1,14 @@
 import { notFound } from 'next/navigation'
+import Image from 'next/image'
+import { Link } from '@/i18n/routing'
 import { getTranslations } from 'next-intl/server'
 import { createAnonymousClient } from '@/lib/supabase/server'
 import { getCategoryBySlug, getProductsByCategory, getCategories } from '@/lib/supabase/queries'
-import { ProductCard } from '@/components/shared/product-card'
-import { EmptyState } from '@/components/shared/empty-state'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { ShoppingBag } from 'lucide-react'
+import { formatPrice } from '@/lib/utils'
 import type { Product, Category } from '@/types'
 import type { Metadata } from 'next'
 
@@ -13,39 +17,39 @@ interface Props {
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  try {
-    const { slug, locale } = await params
-    const supabase = createAnonymousClient()
-    const category = await getCategoryBySlug(supabase, slug)
+  const { slug, locale } = await params
+  const supabase = createAnonymousClient()
+  const category = await getCategoryBySlug(supabase, slug)
 
-    if (!category) return { title: 'Category Not Found' }
+  if (!category) return { title: 'Category Not Found' }
 
-    const name = locale === 'ar' ? category.name_ar : category.name_fr
-    const description = locale === 'ar' ? category.description_ar : category.description_fr
-
-    return {
-      title: `${name} - Tapis`,
-      description,
-      openGraph: { title: `${name} - Tapis`, description, images: category.image ? [{ url: category.image }] : [] },
-    }
-  } catch {
-    return { title: 'Category - Tapis' }
+  const name = locale === 'ar' ? category.name_ar : category.name_fr
+  return {
+    title: `${name} - Tapis`,
+    description: locale === 'ar' ? category.description_ar : category.description_fr,
   }
 }
 
 export async function generateStaticParams() {
   try {
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-
-    if (!supabaseUrl || !supabaseKey) return []
-
     const supabase = createAnonymousClient()
     const categories = await getCategories(supabase)
-
     return categories.map((cat) => ({ slug: cat.slug }))
   } catch {
     return []
+  }
+}
+
+async function getData(slug: string) {
+  try {
+    const supabase = createAnonymousClient()
+    const [category, products] = await Promise.all([
+      getCategoryBySlug(supabase, slug),
+      getProductsByCategory(supabase, slug),
+    ])
+    return { category, products, error: null }
+  } catch (err) {
+    return { category: null, products: [], error: String(err) }
   }
 }
 
@@ -54,66 +58,116 @@ export default async function CategoryPage({ params }: Props) {
   const t = await getTranslations()
   const currentLocale = (locale === 'fr' ? 'fr' : 'ar') as 'ar' | 'fr'
 
-  let category: Category | null = null
-  let products: Product[] = []
-  let fetchError = false
+  const { category, products, error } = await getData(slug)
 
-  try {
-    const supabase = createAnonymousClient()
-    const [catResult, prodResult] = await Promise.allSettled([
-      getCategoryBySlug(supabase, slug),
-      getProductsByCategory(supabase, slug),
-    ])
-
-    if (catResult.status === 'fulfilled') category = catResult.value
-    if (prodResult.status === 'fulfilled') products = prodResult.value
-    if (catResult.status === 'rejected' || prodResult.status === 'rejected') fetchError = true
-  } catch {
-    fetchError = true
-  }
-
-  if (!category && !fetchError) notFound()
+  if (!category && !error) notFound()
 
   const categoryName = currentLocale === 'ar' ? category?.name_ar : category?.name_fr
-  const categoryDescription = currentLocale === 'ar' ? category?.description_ar : category?.description_fr
+
+  if (error) {
+    return (
+      <div className="container-luxury py-8 md:py-12">
+        <div className="text-center py-20">
+          <ShoppingBag className="size-16 text-muted-foreground/20 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold">عذراً</h2>
+          <p className="text-muted-foreground mt-2">حدث خطأ في تحميل الصفحة</p>
+          <p className="text-xs text-muted-foreground/50 mt-4 font-mono">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="container-luxury py-8 md:py-12">
       <div className="mb-8 md:mb-10">
         <h1 className="heading-3 text-foreground">{categoryName || slug}</h1>
-        {categoryDescription && (
+        {category?.description_ar && (
           <p className="mt-2 text-muted-foreground body-base max-w-2xl">
-            {categoryDescription}
+            {currentLocale === 'ar' ? category.description_ar : category.description_fr}
           </p>
         )}
         <p className="mt-2 text-sm text-muted-foreground">
-          {products.length}{' '}
-          {products.length === 1
-            ? t('products.title')
-            : currentLocale === 'ar'
-              ? 'منتج'
-              : 'produits'}
+          {products.length} {currentLocale === 'ar' ? 'منتج' : 'produits'}
         </p>
       </div>
 
-      {fetchError ? (
-        <EmptyState
-          icon={ShoppingBag}
-          title="عذراً"
-          description="حدث خطأ في تحميل المنتجات. الرجاء المحاولة مرة أخرى."
-        />
-      ) : products.length > 0 ? (
+      {products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} locale={currentLocale} />
-          ))}
+          {products.map((product) => {
+            const productName = currentLocale === 'ar' ? product.name_ar : product.name_fr
+            const imageUrl = product.images?.[0]
+            const isOnSale = product.sale_price != null && product.sale_price < product.price
+            const displayPrice = isOnSale ? product.sale_price! : product.price
+
+            return (
+              <div
+                key={product.id}
+                className="group relative flex flex-col rounded-xl border border-border/60 bg-card overflow-hidden transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+              >
+                {isOnSale && (
+                  <Badge className="absolute top-2 start-2 z-10 bg-destructive text-destructive-foreground border-0">
+                    {t('products.sale')}
+                  </Badge>
+                )}
+                <Link href={`/products/${product.slug}`} className="overflow-hidden">
+                  <AspectRatio ratio={4/3} className="bg-muted">
+                    {imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={productName}
+                        fill
+                        className="object-cover transition-transform duration-500 group-hover:scale-110"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                      />
+                    ) : (
+                      <div className="flex size-full items-center justify-center text-muted-foreground/30">
+                        <ShoppingBag className="size-10" />
+                      </div>
+                    )}
+                  </AspectRatio>
+                </Link>
+                <div className="flex flex-1 flex-col gap-2 p-3.5">
+                  <Link
+                    href={`/products/${product.slug}`}
+                    className="text-sm font-medium text-foreground hover:text-primary transition-colors line-clamp-2"
+                  >
+                    {productName}
+                  </Link>
+                  <div className="flex items-center gap-1">
+                    {product.colors?.slice(0, 5).map((color: string) => (
+                      <span
+                        key={color}
+                        className="inline-block size-3.5 rounded-full border border-border/60"
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 mt-auto">
+                    <span className="text-base font-bold text-primary">
+                      {formatPrice(displayPrice, currentLocale)}
+                    </span>
+                    {isOnSale && (
+                      <span className="text-xs text-muted-foreground line-through">
+                        {formatPrice(product.price, currentLocale)}
+                      </span>
+                    )}
+                  </div>
+                  <Link href={`/products/${product.slug}`}>
+                    <Button size="sm" className="w-full mt-1">
+                      <ShoppingBag className="size-3.5" />
+                      {t('products.add_to_cart')}
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            )
+          })}
         </div>
       ) : (
-        <EmptyState
-          icon={ShoppingBag}
-          title={t('products.no_results')}
-          description={currentLocale === 'ar' ? 'لا توجد منتجات في هذا التصنيف حالياً' : 'Aucun produit dans cette catégorie pour le moment'}
-        />
+        <div className="text-center py-20">
+          <ShoppingBag className="size-16 text-muted-foreground/20 mx-auto mb-4" />
+          <h2 className="text-xl font-semibold">{t('products.no_results')}</h2>
+        </div>
       )}
     </div>
   )
