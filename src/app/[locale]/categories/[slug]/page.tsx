@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAnonymousClient } from '@/lib/supabase/server'
 import { getCategoryBySlug, getProductsByCategory, getCategories } from '@/lib/supabase/queries'
 import { ProductCard } from '@/components/shared/product-card'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -15,7 +15,7 @@ interface Props {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   try {
     const { slug, locale } = await params
-    const supabase = await createClient()
+    const supabase = createAnonymousClient()
     const category = await getCategoryBySlug(supabase, slug)
 
     if (!category) return { title: 'Category Not Found' }
@@ -35,13 +35,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export async function generateStaticParams() {
   try {
-    const { createClient: createSupabaseClient } = await import('@supabase/supabase-js')
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
     if (!supabaseUrl || !supabaseKey) return []
 
-    const supabase = createSupabaseClient(supabaseUrl, supabaseKey)
+    const supabase = createAnonymousClient()
     const categories = await getCategories(supabase)
 
     return categories.map((cat) => ({ slug: cat.slug }))
@@ -60,7 +59,7 @@ export default async function CategoryPage({ params }: Props) {
   let fetchError = false
 
   try {
-    const supabase = await createClient()
+    const supabase = createAnonymousClient()
     const [catResult, prodResult] = await Promise.allSettled([
       getCategoryBySlug(supabase, slug),
       getProductsByCategory(supabase, slug),

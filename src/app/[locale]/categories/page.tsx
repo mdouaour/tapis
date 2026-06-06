@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import { getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
-import { createClient } from '@/lib/supabase/server'
+import { createAnonymousClient } from '@/lib/supabase/server'
 import { getCategories } from '@/lib/supabase/queries'
 import { cn } from '@/lib/utils'
 import { LayoutGrid } from 'lucide-react'
@@ -20,7 +20,7 @@ export default async function CategoriesPage({ params }: Props) {
   const t = await getTranslations()
   const currentLocale = (locale === 'fr' ? 'fr' : 'ar') as 'ar' | 'fr'
 
-  const supabase = await createClient()
+  const supabase = createAnonymousClient()
   const categories = await getCategories(supabase)
 
   return (

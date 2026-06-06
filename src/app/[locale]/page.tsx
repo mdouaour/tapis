@@ -1,7 +1,7 @@
 import Image from "next/image"
 import { Link } from "@/i18n/routing"
 import { getTranslations } from "next-intl/server"
-import { createClient } from "@/lib/supabase/server"
+import { createAnonymousClient } from "@/lib/supabase/server"
 import { getFeaturedProducts, getCategories } from "@/lib/supabase/queries"
 import { ProductCard } from "@/components/shared/product-card"
 import { Button } from "@/components/ui/button"
@@ -34,7 +34,7 @@ export default async function HomePage({
   let categories: Category[] = []
 
   try {
-    const supabase = await createClient()
+    const supabase = createAnonymousClient()
     const [productsResult, categoriesResult] = await Promise.allSettled([
       getFeaturedProducts(supabase),
       getCategories(supabase),

@@ -1,5 +1,5 @@
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAnonymousClient } from '@/lib/supabase/server'
 import { searchProducts } from '@/lib/supabase/queries'
 import { ProductCard } from '@/components/shared/product-card'
 import { EmptyState } from '@/components/shared/empty-state'
@@ -21,7 +21,7 @@ export default async function SearchPage({ searchParams, params }: Props) {
   const t = await getTranslations()
   const currentLocale = (locale === 'fr' ? 'fr' : 'ar') as 'ar' | 'fr'
 
-  const supabase = await createClient()
+  const supabase = createAnonymousClient()
   const products = q ? await searchProducts(supabase, q) : []
 
   return (

@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient as createSupabaseClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 
 export async function createClient() {
@@ -10,18 +11,23 @@ export async function createClient() {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll()
+          try { return cookieStore.getAll() } catch { return [] }
         },
         setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            try {
-              cookieStore.set(name, value, options)
-            } catch {
-              // Cookie can only be set in Server Actions or Route Handlers
-            }
-          })
+          try {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              try { cookieStore.set(name, value, options) } catch {}
+            })
+          } catch {}
         },
       },
     }
+  )
+}
+
+export function createAnonymousClient() {
+  return createSupabaseClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   )
 }

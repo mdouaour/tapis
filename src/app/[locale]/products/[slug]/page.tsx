@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import { getTranslations, getLocale } from 'next-intl/server'
 import { Link } from '@/i18n/routing'
-import { createClient } from '@/lib/supabase/server'
+import { createAnonymousClient } from '@/lib/supabase/server'
 import { getProductBySlug } from '@/lib/supabase/queries'
 import { formatPrice, getImageUrl, cn } from '@/lib/utils'
 import { ChevronLeft, Package } from 'lucide-react'
@@ -17,7 +17,7 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug, locale } = await params
-  const supabase = await createClient()
+  const supabase = createAnonymousClient()
   const product = await getProductBySlug(supabase, slug)
 
   if (!product) return { title: 'Product Not Found' }
@@ -42,7 +42,7 @@ export default async function ProductDetailPage({ params }: Props) {
   const t = await getTranslations()
   const currentLocale = (locale === 'fr' ? 'fr' : 'ar') as 'ar' | 'fr'
 
-  const supabase = await createClient()
+  const supabase = createAnonymousClient()
   const product = await getProductBySlug(supabase, slug)
 
   if (!product) notFound()
