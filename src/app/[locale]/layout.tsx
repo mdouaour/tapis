@@ -1,5 +1,3 @@
-import type { Metadata } from "next"
-import { Cairo, Inter } from "next/font/google"
 import { NextIntlClientProvider } from "next-intl"
 import { getMessages } from "next-intl/server"
 import { Providers } from "@/providers"
@@ -10,18 +8,7 @@ import { WhatsAppButton } from "@/components/shared/whatsapp-button"
 import { Toaster } from "@/components/ui/sonner"
 import { ErrorBoundary } from "@/components/shared/error-boundary"
 import { SITE_NAME, SITE_DESCRIPTION_AR, SITE_URL } from "@/lib/constants"
-
-const cairo = Cairo({
-  subsets: ["arabic", "latin"],
-  variable: "--font-arabic",
-  display: "swap",
-})
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-french",
-  display: "swap",
-})
+import type { Metadata } from "next"
 
 export const metadata: Metadata = {
   title: {
@@ -60,33 +47,21 @@ export default async function LocaleLayout({
 }) {
   const { locale } = await params
   const messages = await getMessages()
-  const dir = locale === "ar" ? "rtl" : "ltr"
-  const isRtl = dir === "rtl"
 
   return (
-    <html
-      lang={locale}
-      dir={dir}
-      className={`${cairo.variable} ${inter.variable} h-full antialiased`}
-    >
-      <body
-        className={`min-h-full flex flex-col ${isRtl ? "font-arabic" : "font-french"}`}
-      >
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            <ErrorBoundary>
-              <Header />
-              <main className="flex-1 min-h-[60vh]">
-                {children}
-              </main>
-              <Footer locale={locale as "ar" | "fr"} />
-              <CartSheet />
-              <WhatsAppButton />
-              <Toaster />
-            </ErrorBoundary>
-          </Providers>
-        </NextIntlClientProvider>
-      </body>
-    </html>
+    <NextIntlClientProvider messages={messages}>
+      <Providers>
+        <ErrorBoundary>
+          <Header />
+          <main className="flex-1 min-h-[60vh]">
+            {children}
+          </main>
+          <Footer locale={locale as "ar" | "fr"} />
+          <CartSheet />
+          <WhatsAppButton />
+          <Toaster />
+        </ErrorBoundary>
+      </Providers>
+    </NextIntlClientProvider>
   )
 }
