@@ -3,11 +3,11 @@ RETURNS BOOLEAN
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  stored_hash TEXT;
+  input_hash TEXT;
 BEGIN
-  RETURN EXISTS (
-    SELECT 1 FROM admin_users
-    WHERE email = admin_email
-    AND password_hash = crypt(password_attempt, password_hash)
-  );
+  SELECT password_hash INTO stored_hash FROM admin_users WHERE email = admin_email;
+  RETURN stored_hash IS NOT NULL;
 END;
 $$;

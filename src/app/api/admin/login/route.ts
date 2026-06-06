@@ -1,7 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
+import crypto from 'crypto'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { adminLoginSchema } from '@/lib/validations'
 import { signSession } from '@/lib/session'
+
+function hashPassword(password: string): string {
+  return crypto.createHash('sha256').update(password).digest('hex')
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -21,33 +26,26 @@ export async function POST(request: NextRequest) {
     const { email, password } = validation.data
     const supabase = createAdminClient()
 
-    // Verify password using pgcrypto RPC function
-    const { data: isValid, error: rpcError } = await supabase.rpc(
-      'verify_admin_password',
-      {
-        admin_email: email,
-        password_attempt: password,
-      }
-    )
+    // Fetch admin by email
+    const { data: admin, error: adminError } = await supabase
+      .from('admin_users')
+      .select('id, email, name, password_hash')
+      .eq('email', email)
+      .single()
 
-    if (rpcError || !isValid) {
+    if (adminError || !admin) {
       return NextResponse.json(
         { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' },
         { status: 401 }
       )
     }
 
-    // Fetch admin details
-    const { data: admin, error: adminError } = await supabase
-      .from('admin_users')
-      .select('id, email, name')
-      .eq('email', email)
-      .single()
-
-    if (adminError || !admin) {
+    // Compare password hash using Node.js crypto (SHA-256)
+    const passwordHash = hashPassword(password)
+    if (admin.password_hash !== passwordHash) {
       return NextResponse.json(
-        { error: 'حدث خطأ في تحميل بيانات المسؤول' },
-        { status: 500 }
+        { error: 'البريد الإلكتروني أو كلمة المرور غير صحيحة' },
+        { status: 401 }
       )
     }
 

@@ -204,7 +204,7 @@ CREATE POLICY "Allow admin write on product_images"
 
 -- =====================================================
 -- DEFAULT ADMIN USER (password: admin123)
--- Hashed using pgcrypto with bcrypt-style crypt()
+-- Hashed using SHA-256 via pgcrypto digest()
 -- =====================================================
 
 INSERT INTO admin_users (id, email, name, role, password_hash)
@@ -213,5 +213,5 @@ VALUES (
   'admin@tapis.dz',
   'مدير المنصة',
   'superadmin',
-  crypt('admin123', gen_salt('bf', 10))
+  '240be518fabd2724ddb6f04eeb1da5967448d7e831c08c8fa822809f74c720a9'
 );
