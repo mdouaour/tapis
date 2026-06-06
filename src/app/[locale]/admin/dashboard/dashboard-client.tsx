@@ -1,6 +1,5 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
 import type { DashboardStats } from '@/types'
 import { useTranslations } from 'next-intl'
 import { formatPrice, formatDate } from '@/lib/utils'
@@ -11,7 +10,6 @@ import {
   CardContent,
   CardDescription,
 } from '@/components/ui/card'
-import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
 import {
   ShoppingCart,
@@ -40,72 +38,12 @@ const STATUS_LABELS: Record<string, { ar: string; fr: string }> = {
 }
 
 interface DashboardClientProps {
+  stats: DashboardStats
   locale: 'ar' | 'fr'
 }
 
-export function DashboardClient({ locale }: DashboardClientProps) {
+export function DashboardClient({ stats, locale }: DashboardClientProps) {
   const t = useTranslations('admin')
-  const [stats, setStats] = useState<DashboardStats | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const fetchStats = useCallback(async () => {
-    try {
-      setLoading(true)
-      const res = await fetch('/api/admin/dashboard')
-      if (!res.ok) throw new Error('Failed to fetch')
-      const data = await res.json()
-      setStats(data.stats)
-    } catch {
-      setStats(null)
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchStats()
-  }, [fetchStats])
-
-  if (loading) {
-    return (
-      <div className="space-y-6">
-        <Skeleton className="h-7 w-40" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <Card key={i}>
-              <CardContent className="flex items-center gap-4 p-4">
-                <Skeleton className="size-10 rounded-lg" />
-                <div className="space-y-2">
-                  <Skeleton className="h-3 w-20" />
-                  <Skeleton className="h-5 w-16" />
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-        <Card>
-          <CardHeader>
-            <Skeleton className="h-5 w-32" />
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {Array.from({ length: 5 }).map((_, i) => (
-                <Skeleton key={i} className="h-10 w-full" />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  if (!stats) {
-    return (
-      <div className="flex items-center justify-center py-20 text-neutral-500">
-        تعذر تحميل إحصائيات لوحة التحكم
-      </div>
-    )
-  }
 
   const statCards = [
     {
@@ -138,6 +76,7 @@ export function DashboardClient({ locale }: DashboardClientProps) {
     <div className="space-y-6">
       <h1 className="text-xl font-bold text-neutral-900">{t('dashboard')}</h1>
 
+      {/* Stats Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {statCards.map(({ label, value, icon: Icon, color }) => (
           <Card key={label}>
@@ -156,6 +95,7 @@ export function DashboardClient({ locale }: DashboardClientProps) {
         ))}
       </div>
 
+      {/* Revenue Chart Placeholder */}
       {stats.revenueByMonth.length > 0 && (
         <Card>
           <CardHeader>
@@ -182,9 +122,7 @@ export function DashboardClient({ locale }: DashboardClientProps) {
                     const label = `${m}/${year}`
                     return (
                       <tr key={month} className="border-b last:border-0">
-                        <td className="py-2.5 font-medium text-neutral-700">
-                          {label}
-                        </td>
+                        <td className="py-2.5 font-medium text-neutral-700">{label}</td>
                         <td className="py-2.5 text-right font-semibold text-neutral-900">
                           {formatPrice(revenue, locale)}
                         </td>
@@ -211,6 +149,7 @@ export function DashboardClient({ locale }: DashboardClientProps) {
         </Card>
       )}
 
+      {/* Recent Orders */}
       <Card>
         <CardHeader>
           <CardTitle>{t('recent_orders')}</CardTitle>
