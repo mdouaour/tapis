@@ -133,6 +133,7 @@
   },
   "common": {
     "search": "Recherche",
+    "admin": "Tableau de bord",
     "loading": "Chargement en cours...",
     "error": "Une erreur est survenue",
     "error_message": "Désolé, une erreur inattendue s'est produite. Veuillez réessayer.",
