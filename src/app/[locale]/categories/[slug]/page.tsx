@@ -3,54 +3,24 @@ import Image from 'next/image'
 import { Link } from '@/i18n/routing'
 import { getTranslations } from 'next-intl/server'
 import { createAnonymousClient } from '@/lib/supabase/server'
-import { getCategoryBySlug, getProductsByCategory, getCategories } from '@/lib/supabase/queries'
+import { getCategoryBySlug, getProductsByCategory } from '@/lib/supabase/queries'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { AspectRatio } from '@/components/ui/aspect-ratio'
 import { ShoppingBag } from 'lucide-react'
 import { formatPrice } from '@/lib/utils'
-import type { Product, Category } from '@/types'
-import type { Metadata } from 'next'
 
 interface Props {
   params: Promise<{ slug: string; locale: string }>
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
+export async function generateMetadata({ params }: Props) {
   const { slug, locale } = await params
   const supabase = createAnonymousClient()
   const category = await getCategoryBySlug(supabase, slug)
-
   if (!category) return { title: 'Category Not Found' }
-
   const name = locale === 'ar' ? category.name_ar : category.name_fr
-  return {
-    title: `${name} - Tapis`,
-    description: locale === 'ar' ? category.description_ar : category.description_fr,
-  }
-}
-
-export async function generateStaticParams() {
-  try {
-    const supabase = createAnonymousClient()
-    const categories = await getCategories(supabase)
-    return categories.map((cat) => ({ slug: cat.slug }))
-  } catch {
-    return []
-  }
-}
-
-async function getData(slug: string) {
-  try {
-    const supabase = createAnonymousClient()
-    const [category, products] = await Promise.all([
-      getCategoryBySlug(supabase, slug),
-      getProductsByCategory(supabase, slug),
-    ])
-    return { category, products, error: null }
-  } catch (err) {
-    return { category: null, products: [], error: String(err) }
-  }
+  return { title: `${name} - Tapis` }
 }
 
 export default async function CategoryPage({ params }: Props) {
@@ -58,33 +28,41 @@ export default async function CategoryPage({ params }: Props) {
   const t = await getTranslations()
   const currentLocale = (locale === 'fr' ? 'fr' : 'ar') as 'ar' | 'fr'
 
-  const { category, products, error } = await getData(slug)
+  const supabase = createAnonymousClient()
 
-  if (!category && !error) notFound()
-
-  const categoryName = currentLocale === 'ar' ? category?.name_ar : category?.name_fr
-
-  if (error) {
+  let category
+  try {
+    category = await getCategoryBySlug(supabase, slug)
+  } catch {
     return (
       <div className="container-luxury py-8 md:py-12">
         <div className="text-center py-20">
           <ShoppingBag className="size-16 text-muted-foreground/20 mx-auto mb-4" />
           <h2 className="text-xl font-semibold">عذراً</h2>
-          <p className="text-muted-foreground mt-2">حدث خطأ في تحميل الصفحة</p>
-          <p className="text-xs text-muted-foreground/50 mt-4 font-mono">{error}</p>
+          <p className="text-muted-foreground mt-2">حدث خطأ في تحميل الفئة</p>
         </div>
       </div>
     )
   }
 
+  if (!category) notFound()
+
+  let products: any[] = []
+  try {
+    products = await getProductsByCategory(supabase, slug)
+  } catch {
+    // return empty products
+  }
+
+  const categoryName = currentLocale === 'ar' ? category.name_ar : category.name_fr
+  const categoryDesc = currentLocale === 'ar' ? category.description_ar : category.description_fr
+
   return (
     <div className="container-luxury py-8 md:py-12">
       <div className="mb-8 md:mb-10">
-        <h1 className="heading-3 text-foreground">{categoryName || slug}</h1>
-        {category?.description_ar && (
-          <p className="mt-2 text-muted-foreground body-base max-w-2xl">
-            {currentLocale === 'ar' ? category.description_ar : category.description_fr}
-          </p>
+        <h1 className="heading-3 text-foreground">{categoryName}</h1>
+        {categoryDesc && (
+          <p className="mt-2 text-muted-foreground body-base max-w-2xl">{categoryDesc}</p>
         )}
         <p className="mt-2 text-sm text-muted-foreground">
           {products.length} {currentLocale === 'ar' ? 'منتج' : 'produits'}
@@ -93,7 +71,7 @@ export default async function CategoryPage({ params }: Props) {
 
       {products.length > 0 ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-5">
-          {products.map((product) => {
+          {products.map((product: any) => {
             const productName = currentLocale === 'ar' ? product.name_ar : product.name_fr
             const imageUrl = product.images?.[0]
             const isOnSale = product.sale_price != null && product.sale_price < product.price
